@@ -18,25 +18,33 @@ import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 import static android.text.TextUtils.isEmpty;
 
-class PingHost extends AsyncTask {
-    protected boolean doInBackground(String... hostnames) {
-        String tmp_hostname = hostnames[0];
-        boolean name_valid = false;
-        try {
-            name_valid = InetAddress.getByName(tmp_hostname).isReachable(500);
-        } catch (IOException e) {
-            // something
-            name_valid = false;
-            System.out.println("Exception validating robot hostname, e: " + e.toString());
-        }
-        return name_valid;
-    }
-    protected void onPostExecute(boolean result) {
-        // do something with the result
-    }
-}
-
 public class VirtualJoyActivity extends AppCompatActivity {
+    private class PingHost extends AsyncTask<String, Void, Boolean> {
+        private Boolean name_valid = false;
+        private String tmp_hostname;
+        @Override
+        protected Boolean doInBackground(String... hostnames) {
+            tmp_hostname = hostnames[0];
+            name_valid = false;
+            try {
+                name_valid = InetAddress.getByName(tmp_hostname).isReachable(500);
+            } catch (IOException e) {
+                // something
+                name_valid = false;
+                System.out.println("Exception validating robot hostname, e: " + e.toString());
+            }
+            return name_valid;
+        }
+        @Override
+        protected void onPostExecute(Boolean result) {
+            // do something with the result
+            if (name_valid) {
+                hostname = tmp_hostname;
+                System.out.println("Hostname was: "+ hostname);
+            }
+        }
+    }
+
     private String hostname;
 
     private void sendMotorOutputs () {
@@ -89,12 +97,10 @@ public class VirtualJoyActivity extends AppCompatActivity {
                 String tmp_hostname = input.getText().toString();
                 new PingHost().execute(tmp_hostname);
 
-                /*if (name_valid) {
-                    hostname = tmp_hostname;
-                }*/
+
                 TextView hostname_text_view = (TextView) findViewById(R.id.hostname);
                 hostname_text_view.setText(hostname);
-                System.out.println("Hostname was: "+ hostname);
+                //System.out.println("Hostname was: "+ hostname);
             }
         });
         alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
