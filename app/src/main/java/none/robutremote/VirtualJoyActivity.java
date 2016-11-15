@@ -44,7 +44,7 @@ public class VirtualJoyActivity extends AppCompatActivity {
                 System.out.println("Hostname was: "+ hostname);
                 // set the text element
                 TextView hostname_text_view = (TextView) findViewById(R.id.hostname);
-                hostname_text_view.setText(hostname);
+                hostname_text_view.setText("Host: "+hostname);
             }
         }
     }
