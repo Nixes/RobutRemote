@@ -11,8 +11,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 
@@ -21,14 +26,14 @@ import static android.text.TextUtils.isEmpty;
 public class VirtualJoyActivity extends AppCompatActivity {
     private class PingHost extends AsyncTask<String, Void, Boolean> {
         private Boolean name_valid = false;
-        private String tmp_hostname;
+        private InetAddress tmp_hostname;
         @Override
         protected Boolean doInBackground(String... hostnames) {
             System.out.println("Checking hostname is accessible");
-            tmp_hostname = hostnames[0];
             name_valid = false;
             try {
-                name_valid = InetAddress.getByName(tmp_hostname).isReachable(500);
+                tmp_hostname = InetAddress.getByName(hostnames[0]);
+                name_valid = tmp_hostname.isReachable(500);
             } catch (IOException e) {
                 // something
                 name_valid = false;
@@ -44,27 +49,64 @@ public class VirtualJoyActivity extends AppCompatActivity {
                 System.out.println("Hostname was: "+ hostname);
                 // set the text element
                 TextView hostname_text_view = (TextView) findViewById(R.id.hostname);
-                hostname_text_view.setText("Host: "+hostname);
+                hostname_text_view.setText("Host: "+ hostname);
             }
         }
     }
 
-    private String hostname;
+    private class SendPacket extends AsyncTask<Integer, Void, Void> {
+        int motor_a;
+        int motor_b;
+
+        private void calculateMotorOutputs(int angle, int strength) {
+
+
+            if (angle > 0 & angle < 180) {
+                // direction positive
+            } else {
+                // direction negative
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Integer... joypad_values) {
+            if (udp_socket == null) {
+                System.out.println("UDP Socket was not open, opening it now");
+                try {
+                    udp_socket = new DatagramSocket(3000,hostname);
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
+            }
+
+            // do some processing to figure out motor values
+            calculateMotorOutputs(joypad_values[0], joypad_values[1]);
+
+            String ascii_packet = '[' + Integer.toString(motor_a) + Integer.toString(motor_b) + ']'; // this might need some work
+            byte[] byte_packet = ascii_packet.getBytes(Charset.forName("UTF-8"));
+            DatagramPacket packet = new DatagramPacket(byte_packet, byte_packet.length);
+            System.out.println(" Packet prepped: "+ascii_packet);
+
+            try {
+                udp_socket.send( packet );
+            } catch (UnknownHostException exception) {
+                exception.printStackTrace();
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+
+            return null;
+        }
+    }
+
+    DatagramSocket udp_socket;
+
+    private InetAddress hostname;
 
     private void sendMotorOutputs () {
 
     }
 
-    private void calculateMotorOutputs(int angle, int strength) {
-        int motor_a;
-        int motor_b;
-
-        if (angle > 0 & angle < 180) {
-            // direction positive
-        } else {
-            // direction negative
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,8 +126,8 @@ public class VirtualJoyActivity extends AppCompatActivity {
                 text_view_strength.setText( "Strength: "+Integer.toString(strength) );
 
                 // don't process the input unless we've somewhere to send it
-                if (!isEmpty(hostname)) {
-                    calculateMotorOutputs(angle, strength);
+                if (hostname != null) {
+                    new SendPacket().execute(angle,strength);
                 }
             }
         });
