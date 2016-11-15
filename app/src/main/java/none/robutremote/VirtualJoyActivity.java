@@ -85,8 +85,10 @@ public class VirtualJoyActivity extends AppCompatActivity {
         private void calculateMotorOutputs(int angle, int strength) {
             Point cart_point = polarToCart(angle,strength);
 
-            int max_motor_speed = 1000;
-            int min_motor_speed = 700;
+            final int max_motor_speed = 1000;
+            final int min_motor_speed = 700;
+
+            final double max_joy_val = 700;
 
             double fPivYLimit = 32.0;
 
@@ -101,17 +103,17 @@ public class VirtualJoyActivity extends AppCompatActivity {
             // Calculate Drive Turn output due to Joystick X input
             if (cart_point.y >= 0) {
                 // Forward
-                nMotPremixL = (cart_point.x>=0)? 127.0 : (127.0 + cart_point.x);
-                nMotPremixR = (cart_point.x>=0)? (127.0 - cart_point.x) : 127.0;
+                nMotPremixL = (cart_point.x>=0)? max_joy_val : (max_joy_val + cart_point.x);
+                nMotPremixR = (cart_point.x>=0)? (max_joy_val - cart_point.x) : max_joy_val;
             } else {
                 // Reverse
-                nMotPremixL = (cart_point.x>=0)? (127.0 - cart_point.x) : 127.0;
-                nMotPremixR = (cart_point.x>=0)? 127.0 : (127.0 + cart_point.x);
+                nMotPremixL = (cart_point.x>=0)? (max_joy_val - cart_point.x) : max_joy_val;
+                nMotPremixR = (cart_point.x>=0)? max_joy_val : (max_joy_val + cart_point.x);
             }
 
             // Scale Drive output due to Joystick Y input (throttle)
-            nMotPremixL = nMotPremixL * cart_point.y/128.0;
-            nMotPremixR = nMotPremixR * cart_point.y/128.0;
+            nMotPremixL = nMotPremixL * cart_point.y/max_joy_val;
+            nMotPremixR = nMotPremixR * cart_point.y/max_joy_val;
 
             // Now calculate pivot amount
             // - Strength of pivot (nPivSpeed) based on Joystick X input
