@@ -88,7 +88,7 @@ public class VirtualJoyActivity extends AppCompatActivity {
             final int max_motor_speed = 1000;
             final int min_motor_speed = 700;
 
-            final double max_joy_val = 700;
+            final double max_joy_val = 100;
 
             double fPivYLimit = 32.0;
 
