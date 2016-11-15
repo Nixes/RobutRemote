@@ -2,6 +2,7 @@ package none.robutremote;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -58,11 +59,20 @@ public class VirtualJoyActivity extends AppCompatActivity {
         int motor_a;
         int motor_b;
 
+        // convert cartesian coords to diamond coords
+        private Point cartToDiamond (Point cartesian_point) {
+            Point diamond_point = new Point();
+
+            return diamond_point;
+        }
+
         // convert polar coords to cartesian which I understand more intuitively
-        private void polarToCart(int angle, int radius) {
-            double x_pos = Math.cos(angle * Math.PI / 180) * radius;
-            double y_pos = Math.sin(angle * Math.PI / 180) * radius;
-            System.out.println(" cartesian X:" +x_pos + " Y: " +y_pos);
+        private Point polarToCart(int angle, int radius) {
+            Point tmp_point = new Point();
+            tmp_point.x = (int) Math.cos(angle * Math.PI / 180) * radius;
+            tmp_point.y = (int) Math.sin(angle * Math.PI / 180) * radius;
+            System.out.println(" cartesian X:" +tmp_point.x + " Y: " +tmp_point.y);
+            return tmp_point;
         }
 
         private void calculateMotorOutputs(int angle, int strength) {
@@ -93,7 +103,7 @@ public class VirtualJoyActivity extends AppCompatActivity {
             // do some processing to figure out motor values
             calculateMotorOutputs(joypad_values[0], joypad_values[1]);
 
-            String ascii_packet = '[' + Integer.toString(motor_a) + ',' + Integer.toString(motor_b) + ']'; // this might need some work
+            String ascii_packet = '[' + Integer.toString(motor_a) + ',' + Integer.toString(motor_b) + ']';
             byte[] byte_packet = ascii_packet.getBytes(Charset.forName("UTF-8"));
             DatagramPacket packet = new DatagramPacket(byte_packet, byte_packet.length,hostname,3000);
             System.out.println(" Packet prepped: "+ascii_packet);
