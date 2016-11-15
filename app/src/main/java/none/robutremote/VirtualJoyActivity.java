@@ -24,6 +24,7 @@ public class VirtualJoyActivity extends AppCompatActivity {
         private String tmp_hostname;
         @Override
         protected Boolean doInBackground(String... hostnames) {
+            System.out.println("Checking hostname is accessible");
             tmp_hostname = hostnames[0];
             name_valid = false;
             try {
@@ -41,6 +42,9 @@ public class VirtualJoyActivity extends AppCompatActivity {
             if (name_valid) {
                 hostname = tmp_hostname;
                 System.out.println("Hostname was: "+ hostname);
+                // set the text element
+                TextView hostname_text_view = (TextView) findViewById(R.id.hostname);
+                hostname_text_view.setText(hostname);
             }
         }
     }
@@ -60,7 +64,8 @@ public class VirtualJoyActivity extends AppCompatActivity {
         } else {
             // direction negative
         }
-    };
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +76,13 @@ public class VirtualJoyActivity extends AppCompatActivity {
         joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
+                // set debug text outputs
+                TextView text_view_angle = (TextView) findViewById(R.id.angle);
+                text_view_angle.setText( "Angle: "+Integer.toString(angle) );
+
+                TextView text_view_strength = (TextView) findViewById(R.id.strength);
+                text_view_strength.setText( "Strength: "+Integer.toString(strength) );
+
                 // don't process the input unless we've somewhere to send it
                 if (!isEmpty(hostname)) {
                     calculateMotorOutputs(angle, strength);
@@ -96,10 +108,6 @@ public class VirtualJoyActivity extends AppCompatActivity {
 
                 String tmp_hostname = input.getText().toString();
                 new PingHost().execute(tmp_hostname);
-
-
-                TextView hostname_text_view = (TextView) findViewById(R.id.hostname);
-                hostname_text_view.setText(hostname);
                 //System.out.println("Hostname was: "+ hostname);
             }
         });
