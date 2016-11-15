@@ -59,7 +59,8 @@ public class VirtualJoyActivity extends AppCompatActivity {
         int motor_b;
 
         private void calculateMotorOutputs(int angle, int strength) {
-
+            motor_a = strength * 10;
+            motor_b = strength * 10;
 
             if (angle > 0 & angle < 180) {
                 // direction positive
@@ -73,8 +74,9 @@ public class VirtualJoyActivity extends AppCompatActivity {
             if (udp_socket == null) {
                 System.out.println("UDP Socket was not open, opening it now");
                 try {
-                    udp_socket = new DatagramSocket(3000,hostname);
+                    udp_socket = new DatagramSocket(3000);
                 } catch (IOException exception) {
+                    System.out.println("Unable to make a new UDP socket");
                     exception.printStackTrace();
                 }
             }
@@ -82,16 +84,18 @@ public class VirtualJoyActivity extends AppCompatActivity {
             // do some processing to figure out motor values
             calculateMotorOutputs(joypad_values[0], joypad_values[1]);
 
-            String ascii_packet = '[' + Integer.toString(motor_a) + Integer.toString(motor_b) + ']'; // this might need some work
+            String ascii_packet = '[' + Integer.toString(motor_a) + ',' + Integer.toString(motor_b) + ']'; // this might need some work
             byte[] byte_packet = ascii_packet.getBytes(Charset.forName("UTF-8"));
-            DatagramPacket packet = new DatagramPacket(byte_packet, byte_packet.length);
+            DatagramPacket packet = new DatagramPacket(byte_packet, byte_packet.length,hostname,3000);
             System.out.println(" Packet prepped: "+ascii_packet);
 
             try {
                 udp_socket.send( packet );
             } catch (UnknownHostException exception) {
+                System.out.println("UnknownHostException sending packet");
                 exception.printStackTrace();
             } catch (IOException exception) {
+                System.out.println("IOException sending packet");
                 exception.printStackTrace();
             }
 
