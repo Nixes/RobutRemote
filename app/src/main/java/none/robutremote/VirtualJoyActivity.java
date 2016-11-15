@@ -58,9 +58,18 @@ public class VirtualJoyActivity extends AppCompatActivity {
         int motor_a;
         int motor_b;
 
+        // convert polar coords to cartesian which I understand more intuitively
+        private void polarToCart(int angle, int radius) {
+            double x_pos = Math.cos(angle * Math.PI / 180) * radius;
+            double y_pos = Math.sin(angle * Math.PI / 180) * radius;
+            System.out.println(" cartesian X:" +x_pos + " Y: " +y_pos);
+        }
+
         private void calculateMotorOutputs(int angle, int strength) {
             motor_a = strength * 10;
             motor_b = strength * 10;
+
+            polarToCart(angle,strength);
 
             if (angle > 0 & angle < 180) {
                 // direction positive
