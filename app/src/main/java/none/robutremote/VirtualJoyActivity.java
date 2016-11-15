@@ -63,30 +63,67 @@ public class VirtualJoyActivity extends AppCompatActivity {
         private Point cartToDiamond (Point cartesian_point) {
             Point diamond_point = new Point();
 
+            int radius = 10; // of what nobody knows
+
+            Point left_outer_end = new Point(cartesian_point.x - (2*radius), cartesian_point.y + (2*radius));
+            //Point left_intersect = new
+
             return diamond_point;
         }
 
         // convert polar coords to cartesian which I understand more intuitively
         private Point polarToCart(int angle, int radius) {
+            System.out.println(" polar angle: "+angle+" radius: "+radius);
             Point tmp_point = new Point();
-            tmp_point.x = (int) Math.cos(angle * Math.PI / 180) * radius;
-            tmp_point.y = (int) Math.sin(angle * Math.PI / 180) * radius;
+            tmp_point.x = (int) (Math.cos(angle * Math.PI / 180) * radius);
+            tmp_point.y = (int) (Math.sin(angle * Math.PI / 180) * radius);
             System.out.println(" cartesian X:" +tmp_point.x + " Y: " +tmp_point.y);
             return tmp_point;
         }
 
+        // an implementation of the algo described here: http://www.impulseadventure.com/elec/robot-differential-steering.html
         private void calculateMotorOutputs(int angle, int strength) {
-            motor_a = strength * 10;
-            motor_b = strength * 10;
+            Point cart_point = polarToCart(angle,strength);
 
-            polarToCart(angle,strength);
+            int max_motor_speed = 1000;
+            int min_motor_speed = 700;
 
-            if (angle > 0 & angle < 180) {
-                // direction positive
+            double fPivYLimit = 32.0;
+
+            // TEMP VARIABLES
+            int range_motor = 1000 - 700;
+            double   nMotPremixL;    // Motor (left)  premixed output        (-128..+127)
+            double   nMotPremixR;    // Motor (right) premixed output        (-128..+127)
+            int     nPivSpeed;      // Pivot Speed                          (-128..+127)
+            double   fPivScale;      // Balance scale b/w drive and pivot    (   0..1   )
+
+
+            // Calculate Drive Turn output due to Joystick X input
+            if (cart_point.y >= 0) {
+                // Forward
+                nMotPremixL = (cart_point.x>=0)? 127.0 : (127.0 + cart_point.x);
+                nMotPremixR = (cart_point.x>=0)? (127.0 - cart_point.x) : 127.0;
             } else {
-                // direction negative
+                // Reverse
+                nMotPremixL = (cart_point.x>=0)? (127.0 - cart_point.x) : 127.0;
+                nMotPremixR = (cart_point.x>=0)? 127.0 : (127.0 + cart_point.x);
             }
+
+            // Scale Drive output due to Joystick Y input (throttle)
+            nMotPremixL = nMotPremixL * cart_point.y/128.0;
+            nMotPremixR = nMotPremixR * cart_point.y/128.0;
+
+            // Now calculate pivot amount
+            // - Strength of pivot (nPivSpeed) based on Joystick X input
+            // - Blending of pivot vs drive (fPivScale) based on Joystick Y input
+            nPivSpeed = cart_point.x;
+            fPivScale = (Math.abs(cart_point.y)>fPivYLimit)? 0.0 : (1.0 - Math.abs(cart_point.y)/fPivYLimit);
+
+            // Calculate final mix of Drive and Pivot
+            motor_a = (int)( (1.0-fPivScale)*nMotPremixL + fPivScale*( nPivSpeed) ) ;
+            motor_b = (int)( (1.0-fPivScale)*nMotPremixR + fPivScale*(-nPivSpeed) ) ;
         }
+
 
         @Override
         protected Void doInBackground(Integer... joypad_values) {
