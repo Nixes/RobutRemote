@@ -2,8 +2,10 @@ package none.robutremote;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
@@ -51,6 +53,7 @@ public class VirtualJoyActivity extends AppCompatActivity {
                 // set the text element
                 TextView hostname_text_view = (TextView) findViewById(R.id.hostname);
                 hostname_text_view.setText("Host: "+ hostname);
+                //savePreferences(); this breaks out of thread and causes a networkonmainthreadException
             }
         }
     }
@@ -154,14 +157,33 @@ public class VirtualJoyActivity extends AppCompatActivity {
     }
 
     DatagramSocket udp_socket;
-
     private InetAddress hostname;
 
+    protected void savePreferences() {
+        String tmp_hostname = hostname.getHostName();
+        System.out.println("stringified hostname was: " + tmp_hostname);
+        if (tmp_hostname != null) {
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("last_hostname", tmp_hostname);
+            editor.commit();
+        }
+    }
+
+    protected void loadPreferences() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String saved_hostname = settings.getString("last_hostname", null);
+        if (saved_hostname != null) {
+            new PingHost().execute(saved_hostname);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_virtual_joy);
+
+        loadPreferences();
 
         // hook up the virtual joystick
         JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
