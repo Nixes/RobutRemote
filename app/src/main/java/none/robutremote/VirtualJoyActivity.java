@@ -90,7 +90,7 @@ public class VirtualJoyActivity extends AppCompatActivity {
 
             final double max_joy_val = 100;
 
-            final double fPivYLimit = 32.0;
+            final double fPivYLimit = 24.0; // 32.0 was originally recommended
 
             // TEMP VARIABLES
             double   nMotPremixL;    // Motor (left)  premixed output        (-100..+99)
