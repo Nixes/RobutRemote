@@ -59,18 +59,6 @@ public class VirtualJoyActivity extends AppCompatActivity {
         int motor_a;
         int motor_b;
 
-        // convert cartesian coords to diamond coords
-        private Point cartToDiamond (Point cartesian_point) {
-            Point diamond_point = new Point();
-
-            int radius = 10; // of what nobody knows
-
-            Point left_outer_end = new Point(cartesian_point.x - (2*radius), cartesian_point.y + (2*radius));
-            //Point left_intersect = new
-
-            return diamond_point;
-        }
-
         // convert polar coords to cartesian which I understand more intuitively
         private Point polarToCart(int angle, int radius) {
             System.out.println(" polar angle: "+angle+" radius: "+radius);
