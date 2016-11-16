@@ -85,18 +85,17 @@ public class VirtualJoyActivity extends AppCompatActivity {
         private void calculateMotorOutputs(int angle, int strength) {
             Point cart_point = polarToCart(angle,strength);
 
-            final int max_motor_speed = 1000;
-            final int min_motor_speed = 700;
+            final double max_motor_speed = 1024.0;
+            final double min_motor_speed = 600.0;
 
             final double max_joy_val = 100;
 
-            double fPivYLimit = 32.0;
+            final double fPivYLimit = 32.0;
 
             // TEMP VARIABLES
-            int range_motor = 1000 - 700;
-            double   nMotPremixL;    // Motor (left)  premixed output        (-128..+127)
-            double   nMotPremixR;    // Motor (right) premixed output        (-128..+127)
-            int     nPivSpeed;      // Pivot Speed                          (-128..+127)
+            double   nMotPremixL;    // Motor (left)  premixed output        (-100..+99)
+            double   nMotPremixR;    // Motor (right) premixed output        (-100..+99)
+            int     nPivSpeed;      // Pivot Speed                          (-100..+99)
             double   fPivScale;      // Balance scale b/w drive and pivot    (   0..1   )
 
 
@@ -121,9 +120,14 @@ public class VirtualJoyActivity extends AppCompatActivity {
             nPivSpeed = cart_point.x;
             fPivScale = (Math.abs(cart_point.y)>fPivYLimit)? 0.0 : (1.0 - Math.abs(cart_point.y)/fPivYLimit);
 
-            // Calculate final mix of Drive and Pivot
-            motor_a = (int)( (1.0-fPivScale)*nMotPremixL + fPivScale*( nPivSpeed) ) ;
-            motor_b = (int)( (1.0-fPivScale)*nMotPremixR + fPivScale*(-nPivSpeed) ) ;
+            // Calculate final mix of Drive and Pivot, produces normalised values between -1 and 1
+            double motor_a_prescale = ( (1.0-fPivScale)*nMotPremixL + fPivScale*( nPivSpeed) ) /100;
+            double motor_b_prescale = ( (1.0-fPivScale)*nMotPremixR + fPivScale*(-nPivSpeed) ) /100;
+
+            // convert normalised values to usable motor range
+            motor_a = (int)( motor_a_prescale * (max_motor_speed - min_motor_speed) + (Math.signum(motor_a_prescale)*min_motor_speed) );
+            motor_b = (int)( motor_b_prescale * (max_motor_speed - min_motor_speed) + (Math.signum(motor_b_prescale)*min_motor_speed) );
+
         }
 
 
