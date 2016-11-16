@@ -157,10 +157,6 @@ public class VirtualJoyActivity extends AppCompatActivity {
 
     private InetAddress hostname;
 
-    private void sendMotorOutputs () {
-
-    }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
