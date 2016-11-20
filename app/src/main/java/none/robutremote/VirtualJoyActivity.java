@@ -189,7 +189,7 @@ public class VirtualJoyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_virtual_joy);
 
-        loadPreferences();
+        //loadPreferences();
 
         // hook up the virtual joystick
         JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
@@ -235,6 +235,11 @@ public class VirtualJoyActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    protected void onDestroy() {
+        super.onStop();
+        udp_socket.close(); // close the socket so the address can be reused
     }
 
     public void askIp (View view) {
