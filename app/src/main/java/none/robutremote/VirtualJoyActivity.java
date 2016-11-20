@@ -21,6 +21,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 
@@ -158,6 +160,10 @@ public class VirtualJoyActivity extends AppCompatActivity {
 
     DatagramSocket udp_socket;
     private InetAddress hostname;
+    Timer zeroed_timer;
+    long zeroed_timer_start; // the time that the zeroed_timer was instantiated
+
+    final long zeroed_timer_timout = 500; // number of ms to send motor zeros after input is stopped
 
     protected void savePreferences() {
         String tmp_hostname = hostname.getHostName();
@@ -199,7 +205,33 @@ public class VirtualJoyActivity extends AppCompatActivity {
 
                 // don't process the input unless we've somewhere to send it
                 if (hostname != null) {
-                    new SendPacket().execute(angle,strength);
+                    if (strength != 0) {
+                        if (zeroed_timer!= null) {
+                            zeroed_timer.cancel();
+                            zeroed_timer = null;
+                        }
+                        new SendPacket().execute(angle,strength);
+                    } else {
+                        if (zeroed_timer == null) {
+                            // start time
+                            zeroed_timer_start = System.currentTimeMillis();
+                            // actually initialise the timer
+                            zeroed_timer = new Timer();
+                            zeroed_timer.scheduleAtFixedRate(new TimerTask() {
+                                public void run() {
+                                    new SendPacket().execute(0, 0);
+                                    // if the current time is passed the timeout threshold
+                                    if (zeroed_timer_start + zeroed_timer_timout < System.currentTimeMillis()) {
+                                        // stop the timer
+                                        System.out.println("Zeroing timer stopped");
+                                        zeroed_timer.cancel();
+                                        zeroed_timer = null;
+                                    }
+                                }
+                            }, 0, 50);
+                        }
+                    }
+
                 }
             }
         });
